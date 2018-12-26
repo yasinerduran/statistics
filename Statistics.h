@@ -55,7 +55,9 @@ turns out to be the true variance by virtue of associative principle.
 
 class Statistics {
   public:
-    Statistics(int numSamples) : mNumSamples(numSamples), mCurrNumSamples(0), mTotal(0), mRefVariance(0), mMin(FLT_MAX), mMax(-FLT_MAX) {}
+    Statistics(int numSamples) : mNumSamples(numSamples), mCurrNumSamples(0), mTotal(0), mRefVariance(0), mMin(FLT_MAX), mMax(-FLT_MAX) {
+
+    }
 
     void setNewSampleSize(int numSamples)
     {
@@ -70,6 +72,7 @@ class Statistics {
       mRefVariance = 0;
       mMin = FLT_MAX;
       mMax = -FLT_MAX;
+      resizeModArry();
     }
 
     void addData(float val)
@@ -79,8 +82,11 @@ class Statistics {
         mTotal = mTotal * (mNumSamples - 1) / mNumSamples;
         mRefVariance = mRefVariance * (mNumSamples - 1) / mNumSamples;
       }
-      else
+      else{
+        mModArry[mCurrNumSamples]= val;
         mCurrNumSamples++; // increment the current number
+      }
+        
       mTotal += val;
       mRefVariance += val*val; // add the square of val (referenced to zero)
       if (val > mMax)
@@ -99,6 +105,24 @@ class Statistics {
     unsigned int samples() const { return mCurrNumSamples; }
     unsigned int sampleSize() const { return mNumSamples; }
 
+    float mod(){
+      float mod_val=0;
+      float repeat_val=0;
+      for(int i = 0; i<mNumSamples; i++){
+        float repeat_counter = 0;
+        for(int ix = 0; ix < mNumSamples; ix++){
+          if(mModArry[i] == mModArry[ix]){
+            repeat_counter += 1;
+            if(repeat_counter >= repeat_val){
+              repeat_val = repeat_counter;
+              mod_val = mModArry[i];
+            }
+          }
+        }
+      }
+      return mod_val;
+    }
+
 
   protected:
     unsigned int mNumSamples;
@@ -107,6 +131,13 @@ class Statistics {
     float mRefVariance; // not true variance - it must be calculated
     float mMin;
     float mMax;
+    float* mModArry = new float[mNumSamples];
+    
+    void resizeModArry() {
+        float* newArry = new float[mNumSamples];
+        delete [] mModArry;
+        mModArry = newArry;
+    }
 };
 
 #endif // #define statistics_h
